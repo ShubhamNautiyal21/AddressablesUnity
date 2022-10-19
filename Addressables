@@ -1,0 +1,61 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
+
+public class Addressable : MonoBehaviour
+{
+  
+
+    public AssetReference player;
+    public AssetReference sceneReference;
+
+    void Start()
+    {
+        //Method 1
+         AsyncOperationHandle handle = player.LoadAssetAsync<GameObject>();
+         handle.Completed += Handle_Completed;
+         
+        //Or
+         player.LoadAssetAsync<GameObject>().Completed += OnGameObjectLoaded;
+
+    //================================================================================================
+        //Method 2
+        player.InstantiateAsync();
+
+
+    //================================================================================================
+        //Method 3
+        Addressables.InstantiateAsync(player);
+
+    //================================================================================================
+        //To instantiate a scene
+
+        sceneReference.LoadSceneAsync(UnityEngine.SceneManagement.LoadSceneMode.Additive);
+
+
+    }
+
+    private void OnGameObjectLoaded(AsyncOperationHandle<GameObject> obj)
+    {
+          GameObject gO = obj.Result;
+    }
+
+    private void Handle_Completed(AsyncOperationHandle obj)
+    {
+        if (obj.Status == AsyncOperationStatus.Succeeded)
+        {
+            GameObject playerObject = (GameObject)Instantiate(player.Asset);
+        }
+        else
+        {
+            Debug.LogError($"AssetReference {player.RuntimeKey} failed to load.");
+        }
+    }
+    private void OnDestroy()
+    {
+        player.ReleaseAsset();
+    }
+}
