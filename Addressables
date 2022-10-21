@@ -9,46 +9,54 @@ public class Addressable : MonoBehaviour
 {
   
 
-    public AssetReference player;
+   public AssetReference player;
     public AssetReference sceneReference;
+    private GameObject _localPlayer;
 
     void Start()
     {
+
+        Addressables.InitializeAsync().Completed += OnAddressablesInitialized;
+      
+
+    }
+
+    private void OnAddressablesInitialized(AsyncOperationHandle<IResourceLocator> obj)
+    {
         //Method 1
-         AsyncOperationHandle handle = player.LoadAssetAsync<GameObject>();
-         handle.Completed += Handle_Completed;
+        AsyncOperationHandle handle = player.LoadAssetAsync<GameObject>();
+        handle.Completed += Handle_Completed;
 
         //Or
-         player.LoadAssetAsync<GameObject>().Completed += OnGameObjectLoaded;
+        player.LoadAssetAsync<GameObject>().Completed += OnGameObjectLoaded;
 
-    //================================================================================================
+        //================================================================================================
         //Method 2
         player.InstantiateAsync();
 
 
-    //================================================================================================
+        //================================================================================================
         //Method 3
         Addressables.InstantiateAsync(player);
 
-    //================================================================================================
+        //================================================================================================
         //To instantiate a scene
 
         sceneReference.LoadSceneAsync(UnityEngine.SceneManagement.LoadSceneMode.Additive);
-
 
     }
 
     private void OnGameObjectLoaded(AsyncOperationHandle<GameObject> obj)
     {
-        GameObject playerObject = (GameObject)Instantiate(obj.Result);
+        _localPlayer = (GameObject)Instantiate(obj.Result);
     }
 
     private void Handle_Completed(AsyncOperationHandle obj)
     {
         if (obj.Status == AsyncOperationStatus.Succeeded)
         {
-            
-                GameObject playerObject = (GameObject)Instantiate(player.Asset);
+
+            _localPlayer = (GameObject)Instantiate(player.Asset);
          
         }
         else
@@ -58,7 +66,9 @@ public class Addressable : MonoBehaviour
     }
     private void OnDestroy()
     {
+        player.ReleaseInstance(_localPlayer);
         player.ReleaseAsset();
         sceneReference.ReleaseAsset();
     }
+
 }
