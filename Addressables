@@ -7,20 +7,23 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 
 public class Addressable : MonoBehaviour
 {
+  using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.AddressableAssets.ResourceLocators;
+using UnityEngine.ResourceManagement.AsyncOperations;
+
+public class AddingScriptableObjects : MonoBehaviour
+{
   
 
-   public AssetReference player;
+    public AssetReference player;
     public AssetReference sceneReference;
     private GameObject _localPlayer;
 
-    void Start()
-    {
-
-        Addressables.InitializeAsync().Completed += OnAddressablesInitialized;
-      
-
-    }
-
+    void Start() => Addressables.InitializeAsync().Completed += OnAddressablesInitialized;
     private void OnAddressablesInitialized(AsyncOperationHandle<IResourceLocator> obj)
     {
         //Method 1
@@ -34,7 +37,6 @@ public class Addressable : MonoBehaviour
         //Method 2
         player.InstantiateAsync();
 
-
         //================================================================================================
         //Method 3
         Addressables.InstantiateAsync(player);
@@ -46,29 +48,24 @@ public class Addressable : MonoBehaviour
 
     }
 
-    private void OnGameObjectLoaded(AsyncOperationHandle<GameObject> obj)
-    {
-        _localPlayer = (GameObject)Instantiate(obj.Result);
-    }
+    private void OnGameObjectLoaded(AsyncOperationHandle<GameObject> obj)=> _localPlayer = (GameObject)Instantiate(obj.Result);
 
     private void Handle_Completed(AsyncOperationHandle obj)
     {
         if (obj.Status == AsyncOperationStatus.Succeeded)
-        {
-
             _localPlayer = (GameObject)Instantiate(player.Asset);
-         
-        }
         else
-        {
             Debug.LogError($"AssetReference {player.RuntimeKey} failed to load.");
-        }
+
     }
+
     private void OnDestroy()
     {
         player.ReleaseInstance(_localPlayer);
         player.ReleaseAsset();
         sceneReference.ReleaseAsset();
     }
+ 
+}
 
 }
